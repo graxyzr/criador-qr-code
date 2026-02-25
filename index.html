@@ -5,89 +5,501 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de QR Code</title>
-    <link rel="shortcut icon" href="img/qrcode.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            color: #333;
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --card: #16161f;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6ef2;
+            --accent2: #e06af0;
+            --text: #f0eeff;
+            --muted: #6b6880;
+            --glow: rgba(124, 110, 242, 0.35);
         }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #007BFF;
-        }
-
-        input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-            max-width: 300px;
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* Ambient background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 20% 20%, rgba(124, 110, 242, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 80% 80%, rgba(224, 106, 240, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: rgba(124, 110, 242, 0.12);
+            border: 1px solid rgba(124, 110, 242, 0.3);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #b3acff;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            text-align: center;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #fff 30%, #b3acff 70%, #e06af0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        p.subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 4px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+                0 24px 60px rgba(0, 0, 0, 0.5),
+                0 0 80px rgba(124, 110, 242, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 13px 14px 13px 40px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--muted);
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(124, 110, 242, 0.5);
+            box-shadow: 0 0 0 3px rgba(124, 110, 242, 0.1);
         }
 
         button {
-            margin-top: 20px;
-            padding: 10px 20px;
+            width: 100%;
+            padding: 14px;
             border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            font-size: 16px;
+            transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 24px rgba(124, 110, 242, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
         button:hover {
-            background-color: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 32px rgba(124, 110, 242, 0.55);
+        }
+
+        button:hover::after {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 12px rgba(124, 110, 242, 0.3);
+        }
+
+        #qrcode-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        #qrcode-wrapper.visible {
+            display: flex;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .qr-frame {
+            position: relative;
+            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 0 40px rgba(124, 110, 242, 0.3), 0 0 80px rgba(224, 106, 240, 0.15);
+        }
+
+        .qr-frame::before,
+        .qr-frame::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        .qr-frame::before {
+            top: -4px;
+            left: -4px;
+            border-width: 3px 0 0 3px;
+            border-radius: 4px 0 0 0;
+        }
+
+        .qr-frame::after {
+            bottom: -4px;
+            right: -4px;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 4px 0;
         }
 
         #qrcode {
-            margin-top: 20px;
-            padding: 20px;
-            background: #fff;
+            display: block;
+            line-height: 0;
+        }
+
+        #qrcode canvas,
+        #qrcode img {
+            border-radius: 4px;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(124, 110, 242, 0.1);
+            border-color: rgba(124, 110, 242, 0.3);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--card);
+            border: 1px solid rgba(124, 110, 242, 0.4);
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 13px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>Gerador de QR Code</h2>
-        <input type="text" id="text" placeholder="Digite um texto ou URL">
-        <button onclick="generateQRCode()">Gerar QR Code</button>
-        <div id="qrcode"></div>
+    <div class="wrapper">
+        <span class="badge">Ferramenta Gratuita</span>
+        <h1>Gerador de<br>QR Code</h1>
+        <p class="subtitle">Transforme qualquer texto ou URL em segundos</p>
+
+        <div class="card">
+            <div class="input-group">
+                <label>Conteúdo</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <input type="text" id="text" placeholder="https://exemplo.com ou qualquer texto"
+                        onkeydown="if(event.key==='Enter') generateQRCode()">
+                </div>
+            </div>
+
+            <button onclick="generateQRCode()">
+                Gerar QR Code →
+            </button>
+
+            <div id="qrcode-wrapper">
+                <div class="divider"></div>
+                <div class="qr-frame">
+                    <div id="qrcode"></div>
+                </div>
+                <div class="qr-actions">
+                    <button class="btn-secondary" onclick="downloadQR()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Baixar
+                    </button>
+                    <button class="btn-secondary" onclick="copyQR()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copiar
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="toast" id="toast"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
         integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script>
+        let qrInstance = null;
+
         function generateQRCode() {
-            const text = document.getElementById('text').value;
-            const qrcodeContainer = document.getElementById('qrcode');
-            qrcodeContainer.innerHTML = "";
-            new QRCode(qrcodeContainer, text);
+            const text = document.getElementById('text').value.trim();
+            if (!text) { showToast('Digite algo primeiro!'); return; }
+
+            const container = document.getElementById('qrcode');
+            const wrapper = document.getElementById('qrcode-wrapper');
+
+            container.innerHTML = '';
+            qrInstance = new QRCode(container, {
+                text: text,
+                width: 200,
+                height: 200,
+                colorDark: '#111118',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            wrapper.classList.add('visible');
+            wrapper.style.animation = 'none';
+            requestAnimationFrame(() => {
+                wrapper.style.animation = '';
+            });
+        }
+
+        function getCanvas() {
+            return document.querySelector('#qrcode canvas');
+        }
+
+        function downloadQR() {
+            const canvas = getCanvas();
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('Download iniciado!');
+        }
+
+        function copyQR() {
+            const canvas = getCanvas();
+            if (!canvas) return;
+            canvas.toBlob(blob => {
+                try {
+                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                    showToast('Imagem copiada!');
+                } catch {
+                    showToast('Navegador não suporta cópia de imagem.');
+                }
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
     </script>
-
 </body>
 
 </html>
