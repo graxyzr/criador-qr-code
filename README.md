@@ -42,4 +42,8 @@ O projeto utiliza uma estética "Dark Mode" moderna com as seguintes caracterís
 
 ```
 
+## ⚖️ Licença
+
+Este projeto está sob a licença **MIT**. Consulte o arquivo `LICENSE` para obter mais detalhes.
+
 ---
